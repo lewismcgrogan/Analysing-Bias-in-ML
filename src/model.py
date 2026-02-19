@@ -34,6 +34,9 @@ def build_pipeline(
     categorical_cols: List[str],
     numeric_cols: List[str],
     seed: int = 42,
+    max_depth: int = 12,
+    n_estimators: int = 300,
+    min_samples_leaf: int = 20,
 ) -> Pipeline:
     cat_pipe = Pipeline(
         steps=[
@@ -57,9 +60,9 @@ def build_pipeline(
 
     # Strong, report-friendly baseline. Not overfitted; stable.
     clf = RandomForestClassifier(
-        n_estimators=300,
-        max_depth=12,
-        min_samples_leaf=20,
+        n_estimators=n_estimators,
+        max_depth=max_depth,
+        min_samples_leaf=min_samples_leaf,
         n_jobs=-1,
         random_state=seed,
         class_weight="balanced",  # helps base rate imbalance + report discussion
@@ -72,13 +75,23 @@ def train_model(
     X_train: pd.DataFrame,
     y_train: pd.Series,
     seed: int = 42,
+    max_depth: int = 12,
+    n_estimators: int = 300,
+    min_samples_leaf: int = 20,
 ) -> TrainedModel:
     feature_cols = list(X_train.columns)
 
     categorical_cols = [c for c in feature_cols if X_train[c].dtype == "object"]
     numeric_cols = [c for c in feature_cols if c not in categorical_cols]
 
-    pipe = build_pipeline(categorical_cols=categorical_cols, numeric_cols=numeric_cols, seed=seed)
+    pipe = build_pipeline(
+        categorical_cols=categorical_cols,
+        numeric_cols=numeric_cols,
+        seed=seed,
+        max_depth=max_depth,
+        n_estimators=n_estimators,
+        min_samples_leaf=min_samples_leaf,
+    )
     pipe.fit(X_train, y_train)
 
     return TrainedModel(
